@@ -36,9 +36,9 @@ type Product struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	CategoryID  uint           `json:"category_id" gorm:"not null"`
 	Name        string         `json:"name" gorm:"not null"`
-	description string         `json:"description"`
+	Description string         `json:"description"`
 	Price       float64        `json:"price" gorm:"not null"`
-	stock       int            `json:"stock" gorm:"default:0"`
+	Stock       int            `json:"stock" gorm:"default:0"`
 	IsActive    bool           `json:"is_active" gorm:"default:true"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`

@@ -20,7 +20,7 @@ type Order struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	UserID      uint           `json:"user_id" gorm:"not null"`
 	TotalAmount float64        `json:"total_amount" gorm:"not null"`
-	Status      OrderStatus    `json:"status" gorm:default:"pending"`
+	Status      OrderStatus    `json:"status" gorm:"default:pending"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeleteAt    gorm.DeletedAt `json:"-" gorm:"index"`
