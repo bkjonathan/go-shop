@@ -20,7 +20,7 @@ type ProductImage struct {
 	IsPrimary bool   `json:"is_primary" gorm:"default:false"`
 
 	// Relationships
-	Products []Product `json:"-"`
+	Product Product `json:"-"`
 }
 
 type Product struct {
