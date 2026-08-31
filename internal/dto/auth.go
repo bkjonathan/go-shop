@@ -18,13 +18,13 @@ type RefreshTokenRequest struct {
 }
 
 type UserResponse struct {
-	ID        uint `json:"id"`
-	Email     uint `json:"email"`
-	FirstName uint `json:"first_name"`
-	LastName  uint `json:"last_name"`
-	Phone     uint `json:"phone"`
-	Role      uint `json:"role"`
-	IsActive  uint `json:"is_active"`
+	ID        uint   `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Role      string `json:"role"`
+	IsActive  bool   `json:"is_active"`
 }
 
 type AuthResponse struct {
