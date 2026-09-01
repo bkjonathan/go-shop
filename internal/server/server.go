@@ -16,6 +16,7 @@ type Server struct {
 	db          *gorm.DB
 	logger      *zerolog.Logger
 	authService *services.AuthService
+	userService *services.UserService
 }
 
 func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
@@ -24,6 +25,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
 		db:          db,
 		logger:      logger,
 		authService: services.NewAuthService(db, cfg),
+		userService: services.NewUserService(db),
 	}
 }
 
@@ -48,6 +50,11 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	auth.POST("/login", Handle(http.StatusOK, "Login successful", s.login))
 	auth.POST("/refresh", Handle(http.StatusOK, "Token refreshed successfully", s.refreshToken))
 	auth.POST("/logout", HandleNoContent(http.StatusOK, "Logout successful", s.logout))
+
+	users := api.Group("/users")
+	users.Use(s.authMiddleware())
+	users.GET("/me", HandleEmpty(http.StatusOK, "Profile retrieved successfully", s.getProfile))
+	users.PUT("/me", Handle(http.StatusOK, "Profile updated successfully", s.updateProfile))
 
 	return router
 }
