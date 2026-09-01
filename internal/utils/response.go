@@ -7,10 +7,11 @@ import (
 )
 
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-	Error   string      `json:"error"`
+	Success bool         `json:"success"`
+	Message string       `json:"message"`
+	Data    interface{}  `json:"data"`
+	Error   string       `json:"error"`
+	Errors  []FieldError `json:"errors,omitempty"`
 }
 
 type PaginationMeta struct {
@@ -25,22 +26,22 @@ type PaginatedResponse struct {
 	Meta PaginationMeta `json:"meta"`
 }
 
-func SuccessResponse(ctx *gin.Context, message string, data interface{}) {
-	ctx.JSON(http.StatusOK, Response{
+// DataResponse writes a successful envelope with an explicit status code.
+// SuccessResponse and CreatedResponse are the two common cases.
+func DataResponse(ctx *gin.Context, statusCode int, message string, data interface{}) {
+	ctx.JSON(statusCode, Response{
 		Success: true,
 		Message: message,
 		Data:    data,
 	})
+}
 
+func SuccessResponse(ctx *gin.Context, message string, data interface{}) {
+	DataResponse(ctx, http.StatusOK, message, data)
 }
 
 func CreatedResponse(ctx *gin.Context, message string, data interface{}) {
-	ctx.JSON(http.StatusCreated, Response{
-		Success: true,
-		Message: message,
-		Data:    data,
-	})
-
+	DataResponse(ctx, http.StatusCreated, message, data)
 }
 
 func ErrorResponse(ctx *gin.Context, statusCode int, message string, err error) {
@@ -83,4 +84,22 @@ func PaginatedSuccessResponse(ctx *gin.Context, message string, data interface{}
 		},
 		Meta: meta,
 	})
+}
+
+// ValidationErrorResponse reports a request that failed binding or validation,
+// listing every offending field at once instead of just the first.
+func ValidationErrorResponse(ctx *gin.Context, err error) {
+	response := Response{
+		Success: false,
+		Message: "Validation failed",
+		Errors:  ValidationFieldErrors(err),
+	}
+
+	if len(response.Errors) == 0 {
+		// Not a field-level problem: malformed JSON, wrong content type, ...
+		response.Message = "Invalid request data"
+		response.Error = err.Error()
+	}
+
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 }

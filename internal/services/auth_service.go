@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bkjonathan/go-shop/internal/apperror"
 	"github.com/bkjonathan/go-shop/internal/config"
 	"github.com/bkjonathan/go-shop/internal/dto"
 	"github.com/bkjonathan/go-shop/internal/models"
@@ -17,18 +18,22 @@ type AuthService struct {
 	config *config.Config
 }
 
-func NewAuthService(db *gorm.DB, config *config.Config) *AuthService {
+func NewAuthService(db *gorm.DB, cfg *config.Config) *AuthService {
 	return &AuthService{
 		db:     db,
-		config: config,
+		config: cfg,
 	}
 }
 
 func (s *AuthService) Register(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
 	// check if the user exists
 	var existingUser models.User
-	if err := s.db.Where("email = ?", req.Email).First(&existingUser).Error; err != nil {
-		return nil, errors.New("user not found")
+	err := s.db.Where("email = ?", req.Email).First(&existingUser).Error
+	if err == nil {
+		return nil, apperror.Conflict("Email is already registered")
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
 	}
 
 	// Hash Password
@@ -61,11 +66,11 @@ func (s *AuthService) Register(req *dto.RegisterRequest) (*dto.AuthResponse, err
 func (s *AuthService) Login(req *dto.LoginRequest) (*dto.AuthResponse, error) {
 	var user models.User
 	if err := s.db.Where("email = ? AND is_active = ?", req.Email, true).First(&user).Error; err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, apperror.Unauthorized("Invalid email or password")
 	}
 
 	if !utils.CheckPassword(req.Password, user.Password) {
-		return nil, errors.New("invalid credentials")
+		return nil, apperror.Unauthorized("Invalid email or password")
 	}
 
 	return s.generateAuthResponse(&user)
@@ -74,18 +79,18 @@ func (s *AuthService) Login(req *dto.LoginRequest) (*dto.AuthResponse, error) {
 func (s *AuthService) RefreshToken(req *dto.RefreshTokenRequest) (*dto.AuthResponse, error) {
 	claims, err := utils.ValidateToken(req.RefreshToken, s.config.JWT.Secret)
 	if err != nil {
-		return nil, errors.New("invalid refresh")
+		return nil, apperror.Unauthorized("Invalid refresh token")
 	}
 
 	var refreshToken models.RefreshToken
 
 	if err := s.db.Where("token = ? AND expires_at > ?", req.RefreshToken, time.Now()).First(&refreshToken).Error; err != nil {
-		return nil, errors.New("invalid refresh")
+		return nil, apperror.Unauthorized("Invalid refresh token")
 	}
 
 	var user models.User
 	if err := s.db.First(&user, claims.UserID).Error; err != nil {
-		return nil, errors.New("user not found")
+		return nil, apperror.NotFound("User not found")
 	}
 
 	s.db.Delete(&refreshToken)
