@@ -13,6 +13,10 @@ func (s *Server) login(ctx *gin.Context, req *dto.LoginRequest) (*dto.AuthRespon
 	return s.authService.Login(req)
 }
 
+func (s *Server) refreshToken(ctx *gin.Context, req *dto.RefreshTokenRequest) (*dto.AuthResponse, error) {
+	return s.authService.RefreshToken(req)
+}
+
 func (s *Server) logout(ctx *gin.Context, req *dto.RefreshTokenRequest) error {
 	return s.authService.Logout(req.RefreshToken)
 }

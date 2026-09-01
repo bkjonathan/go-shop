@@ -46,6 +46,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	auth := api.Group("/auth")
 	auth.POST("/register", Handle(http.StatusCreated, "User registered successfully", s.register))
 	auth.POST("/login", Handle(http.StatusOK, "Login successful", s.login))
+	auth.POST("/refresh", Handle(http.StatusOK, "Token refreshed successfully", s.refreshToken))
 	auth.POST("/logout", HandleNoContent(http.StatusOK, "Logout successful", s.logout))
 
 	return router
