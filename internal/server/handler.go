@@ -40,6 +40,28 @@ func Handle[Req any, Res any](status int, message string, handler func(*gin.Cont
 	}
 }
 
+// HandleNoContent is Handle for routes that take a request payload but have no
+// data to return, such as logout. The envelope is still rendered, with a null
+// `data`.
+//
+//	auth.POST("/logout", HandleNoContent(http.StatusOK, "Logout successful", s.logout))
+func HandleNoContent[Req any](status int, message string, handler func(*gin.Context, *Req) error) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req Req
+		if err := bindRequest(ctx, &req); err != nil {
+			utils.ValidationErrorResponse(ctx, err)
+			return
+		}
+
+		if err := handler(ctx, &req); err != nil {
+			utils.HandleError(ctx, err)
+			return
+		}
+
+		utils.DataResponse(ctx, status, message, nil)
+	}
+}
+
 // HandleEmpty is Handle for routes that take no request payload.
 func HandleEmpty[Res any](status int, message string, handler func(*gin.Context) (Res, error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {

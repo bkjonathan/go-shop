@@ -12,3 +12,7 @@ func (s *Server) register(ctx *gin.Context, req *dto.RegisterRequest) (*dto.Auth
 func (s *Server) login(ctx *gin.Context, req *dto.LoginRequest) (*dto.AuthResponse, error) {
 	return s.authService.Login(req)
 }
+
+func (s *Server) logout(ctx *gin.Context, req *dto.RefreshTokenRequest) error {
+	return s.authService.Logout(req.RefreshToken)
+}
