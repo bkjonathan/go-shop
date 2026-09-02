@@ -62,19 +62,19 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	// Category routes
 	categories := api.Group("/categories")
 	categories.Use(s.authMiddleware())
-	categories.POST("/", Handle(http.StatusCreated, "Category created successfully", s.createCategory))
+	categories.POST("/", s.adminMiddleware(), Handle(http.StatusCreated, "Category created successfully", s.createCategory))
 	categories.GET("/", HandleEmpty(http.StatusOK, "Categories retrieved successfully", s.listCategories))
-	categories.PUT("/:id", Handle(http.StatusOK, "Category updated successfully", s.updateCategory))
-	categories.DELETE("/:id", HandleEmptyNoContent(http.StatusOK, "Category deleted successfully", s.deleteCategory))
+	categories.PUT("/:id", s.adminMiddleware(), Handle(http.StatusOK, "Category updated successfully", s.updateCategory))
+	categories.DELETE("/:id", s.adminMiddleware(), HandleEmptyNoContent(http.StatusOK, "Category deleted successfully", s.deleteCategory))
 
 	// Product routes
 	products := api.Group("/products")
 	products.Use(s.authMiddleware())
-	products.POST("/", Handle(http.StatusCreated, "Product created successfully", s.createProduct))
+	products.POST("/", s.adminMiddleware(), Handle(http.StatusCreated, "Product created successfully", s.createProduct))
 	products.GET("/", HandleEmpty(http.StatusOK, "Products retrieved successfully", s.listProducts))
 	products.GET("/:id", HandleEmpty(http.StatusOK, "Product retrieved successfully", s.getProduct))
-	products.PUT("/:id", Handle(http.StatusOK, "Product updated successfully", s.updateProduct))
-	products.DELETE("/:id", HandleEmptyNoContent(http.StatusOK, "Product deleted successfully", s.deleteProduct))
+	products.PUT("/:id", s.adminMiddleware(), Handle(http.StatusOK, "Product updated successfully", s.updateProduct))
+	products.DELETE("/:id", s.adminMiddleware(), HandleEmptyNoContent(http.StatusOK, "Product deleted successfully", s.deleteProduct))
 
 	return router
 }

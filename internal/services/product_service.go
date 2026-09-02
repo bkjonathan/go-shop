@@ -35,9 +35,9 @@ func (s *ProductService) ListCategories() ([]*dto.CategoryResponse, error) {
 		return nil, err
 	}
 
-	var categoryResponses []*dto.CategoryResponse
-	for _, category := range categories {
-		categoryResponses = append(categoryResponses, toCategoryResponse(&category))
+	categoryResponses := make([]*dto.CategoryResponse, len(categories))
+	for i := range categories {
+		categoryResponses[i] = toCategoryResponse(&categories[i])
 	}
 
 	return categoryResponses, nil
