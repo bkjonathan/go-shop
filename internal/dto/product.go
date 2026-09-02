@@ -1,5 +1,11 @@
 package dto
 
+import (
+	"time"
+
+	"github.com/bkjonathan/go-shop/internal/utils"
+)
+
 type CreateCategoryRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
@@ -8,14 +14,19 @@ type CreateCategoryRequest struct {
 type UpdateCategoryRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
-	IsActive    string `json:"is_active"`
+	IsActive    bool   `json:"is_active"`
 }
 
 type CategoryResponse struct {
 	ID          uint   `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IsActive    string `json:"is_active"`
+	IsActive    bool   `json:"is_active"`
+}
+
+type ProductListResponse struct {
+	Items []ProductResponse    `json:"items"`
+	Meta  utils.PaginationMeta `json:"meta"`
 }
 
 type CreateProductRequest struct {
@@ -47,11 +58,14 @@ type ProductResponse struct {
 	IsActive    *bool                  `json:"is_active"`
 	Category    CategoryResponse       `json:"category"`
 	Images      []ProductImageResponse `json:"images"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
 }
 
 type ProductImageResponse struct {
-	ID        uint   `json:"id"`
-	URL       string `json:"url"`
-	AltText   string `json:"alt_text"`
-	IsPrimary bool   `json:"is_primary"`
+	ID        uint      `json:"id"`
+	URL       string    `json:"url"`
+	AltText   string    `json:"alt_text"`
+	IsPrimary bool      `json:"is_primary"`
+	CreatedAt time.Time `json:"created_at"`
 }

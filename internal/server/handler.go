@@ -75,6 +75,21 @@ func HandleEmpty[Res any](status int, message string, handler func(*gin.Context)
 	}
 }
 
+// HandleEmptyNoContent is Handle for routes that take no request payload and
+// have no data to return, such as a delete addressed only by its path param.
+//
+//	categories.DELETE("/:id", HandleEmptyNoContent(http.StatusOK, "Category deleted successfully", s.deleteCategory))
+func HandleEmptyNoContent(status int, message string, handler func(*gin.Context) error) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if err := handler(ctx); err != nil {
+			utils.HandleError(ctx, err)
+			return
+		}
+
+		utils.DataResponse(ctx, status, message, nil)
+	}
+}
+
 // bindRequest fills req from the path params, the query string and the body, so
 // one DTO can carry `uri`, `form` and `json` tagged fields at once. Validation
 // errors raised by the intermediate binds are ignored on purpose: the struct is

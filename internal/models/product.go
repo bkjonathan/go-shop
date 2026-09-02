@@ -31,6 +31,7 @@ type Product struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price" gorm:"not null"`
 	Stock       int     `json:"stock" gorm:"default:0"`
+	SKU         string  `json:"sku" gorm:"uniqueIndex;not null"`
 	IsActive    bool    `json:"is_active" gorm:"default:true"`
 
 	// Relationships
