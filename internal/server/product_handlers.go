@@ -3,8 +3,8 @@ package server
 import (
 	"strconv"
 
+	"github.com/bkjonathan/go-shop/internal/apperror"
 	"github.com/bkjonathan/go-shop/internal/dto"
-	"github.com/bkjonathan/go-shop/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,8 +19,7 @@ func (s *Server) listCategories(ctx *gin.Context) ([]*dto.CategoryResponse, erro
 func (s *Server) updateCategory(ctx *gin.Context, req *dto.UpdateCategoryRequest) (*dto.CategoryResponse, error) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.BadRequestResponse(ctx, "Invalid category ID", err)
-		return nil, err
+		return nil, apperror.BadRequest("Invalid category ID")
 	}
 
 	return s.productService.UpdateCategory(uint(id), req)
@@ -30,8 +29,7 @@ func (s *Server) updateCategory(ctx *gin.Context, req *dto.UpdateCategoryRequest
 func (s *Server) deleteCategory(ctx *gin.Context) error {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.BadRequestResponse(ctx, "Invalid category ID", err)
-		return err
+		return apperror.BadRequest("Invalid category ID")
 	}
 	return s.productService.DeleteCategory(uint(id))
 }
@@ -55,8 +53,7 @@ func (s *Server) listProducts(ctx *gin.Context) (*dto.ProductListResponse, error
 func (s *Server) getProduct(ctx *gin.Context) (*dto.ProductResponse, error) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.BadRequestResponse(ctx, "Invalid product ID", err)
-		return nil, err
+		return nil, apperror.BadRequest("Invalid product ID")
 	}
 
 	return s.productService.GetProduct(uint(id))
@@ -65,8 +62,7 @@ func (s *Server) getProduct(ctx *gin.Context) (*dto.ProductResponse, error) {
 func (s *Server) updateProduct(ctx *gin.Context, req *dto.UpdateProductRequest) (*dto.ProductResponse, error) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.BadRequestResponse(ctx, "Invalid product ID", err)
-		return nil, err
+		return nil, apperror.BadRequest("Invalid product ID")
 	}
 
 	return s.productService.UpdateProduct(uint(id), req)
@@ -75,8 +71,30 @@ func (s *Server) updateProduct(ctx *gin.Context, req *dto.UpdateProductRequest) 
 func (s *Server) deleteProduct(ctx *gin.Context) error {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.BadRequestResponse(ctx, "Invalid product ID", err)
-		return err
+		return apperror.BadRequest("Invalid product ID")
 	}
 	return s.productService.DeleteProduct(uint(id))
+}
+
+func (s *Server) uploadProductImage(ctx *gin.Context) (*dto.ProductImageResponse, error) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		return nil, apperror.BadRequest("Invalid product ID")
+	}
+
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		return nil, apperror.BadRequest("Failed to get image file")
+	}
+
+	url, err := s.uploadService.UploadProductImage(uint(id), file)
+	if err != nil {
+		return nil, apperror.Internal("Failed to upload image", err)
+	}
+	if err := s.productService.AddProductImage(uint(id), url, file.Filename); err != nil {
+		return nil, apperror.Internal("Failed to add product image", err)
+	}
+	return &dto.ProductImageResponse{
+		URL: url,
+	}, nil
 }

@@ -171,6 +171,27 @@ func (s *ProductService) DeleteProduct(id uint) error {
 	return nil
 }
 
+func (s *ProductService) AddProductImage(productID uint, url, altText string) error {
+	var count int64
+	s.db.Model(&models.ProductImage{}).Where("product_id = ?", productID).Count(&count)
+
+	image := models.ProductImage{
+		ProductID: productID,
+		URL:       url,
+		AltText:   altText,
+		IsPrimary: count == 0, // Set as primary if it's the first image
+	}
+
+	return s.db.Create(&image).Error
+}
+
+func (s *ProductService) RemoveProductImage(imageID uint) error {
+	if err := s.db.Delete(&models.ProductImage{}, imageID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *ProductService) convertToProductResponse(product *models.Product) dto.ProductResponse {
 	images := make([]dto.ProductImageResponse, len(product.Images))
 	for i := range product.Images {

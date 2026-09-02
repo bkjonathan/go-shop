@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bkjonathan/go-shop/internal/config"
+	"github.com/bkjonathan/go-shop/internal/providers"
 	"github.com/bkjonathan/go-shop/internal/services"
 	"github.com/bkjonathan/go-shop/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ type Server struct {
 	authService    *services.AuthService
 	userService    *services.UserService
 	productService *services.ProductService
+	uploadService  *services.UploadService
 }
 
 // TODO: Add a NewServer function to initialize the server with its dependencies
@@ -29,6 +31,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
 		authService:    services.NewAuthService(db, cfg),
 		userService:    services.NewUserService(db),
 		productService: services.NewProductService(db),
+		uploadService:  services.NewUploadService(providers.NewLocalUploadProvider(cfg.Upload.Path)),
 	}
 }
 
@@ -45,6 +48,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 
 	// Add Routes
 	router.GET("/health", s.healthCheck)
+	router.Static("/uploads", "./uploads")
 
 	api := router.Group("/api/v1")
 
@@ -75,6 +79,7 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	products.GET("/:id", HandleEmpty(http.StatusOK, "Product retrieved successfully", s.getProduct))
 	products.PUT("/:id", s.adminMiddleware(), Handle(http.StatusOK, "Product updated successfully", s.updateProduct))
 	products.DELETE("/:id", s.adminMiddleware(), HandleEmptyNoContent(http.StatusOK, "Product deleted successfully", s.deleteProduct))
+	products.POST("/:id/images", s.adminMiddleware(), HandleEmpty(http.StatusCreated, "Product image uploaded successfully", s.uploadProductImage))
 
 	return router
 }
