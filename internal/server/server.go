@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bkjonathan/go-shop/internal/config"
+	"github.com/bkjonathan/go-shop/internal/interfaces"
 	"github.com/bkjonathan/go-shop/internal/providers"
 	"github.com/bkjonathan/go-shop/internal/services"
 	"github.com/bkjonathan/go-shop/internal/utils"
@@ -24,6 +25,13 @@ type Server struct {
 
 // TODO: Add a NewServer function to initialize the server with its dependencies
 func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
+	var uploadProvider interfaces.UploadProvider
+	if cfg.Upload.UploadProvider == "s3" {
+		uploadProvider = providers.NewS3Provider(cfg)
+	} else {
+		uploadProvider = providers.NewLocalUploadProvider(cfg.Upload.Path)
+	}
+
 	return &Server{
 		config:         cfg,
 		db:             db,
@@ -31,7 +39,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
 		authService:    services.NewAuthService(db, cfg),
 		userService:    services.NewUserService(db),
 		productService: services.NewProductService(db),
-		uploadService:  services.NewUploadService(providers.NewLocalUploadProvider(cfg.Upload.Path)),
+		uploadService:  services.NewUploadService(uploadProvider),
 	}
 }
 

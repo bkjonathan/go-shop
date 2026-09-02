@@ -1,11 +1,15 @@
 package providers
 
 import (
-	"fmt"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// publicPrefix must match the route the files are served from in
+// SetupRoutes: router.Static("/uploads", "./uploads").
+const publicPrefix = "/uploads"
 
 type LocalUploadProvider struct {
 	basePath string
@@ -40,10 +44,12 @@ func (p *LocalUploadProvider) UploadFile(file *multipart.FileHeader, path string
 	if _, err := dst.ReadFrom(src); err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("/upload/%s", path), nil
+	return publicPrefix + "/" + strings.TrimPrefix(path, "/"), nil
 }
 
 func (p *LocalUploadProvider) DeleteFile(filePath string) error {
-	fullPath := filepath.Join(p.basePath, filePath)
+	// Accept either a stored public URL or a plain relative path.
+	rel := strings.TrimPrefix(strings.TrimPrefix(filePath, publicPrefix), "/")
+	fullPath := filepath.Join(p.basePath, rel)
 	return os.Remove(fullPath)
 }

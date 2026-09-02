@@ -15,7 +15,13 @@ import (
 func HandleError(ctx *gin.Context, err error) {
 	var appErr *apperror.AppError
 	if errors.As(err, &appErr) {
-		ErrorResponse(ctx, appErr.Status, appErr.Message, nil)
+		// Never leak the wrapped cause to clients in production, but without it
+		// while developing a 500 says nothing about what actually broke.
+		var detail error
+		if appErr.Err != nil && gin.Mode() != gin.ReleaseMode {
+			detail = appErr.Err
+		}
+		ErrorResponse(ctx, appErr.Status, appErr.Message, detail)
 		ctx.Abort()
 		return
 	}
@@ -26,7 +32,6 @@ func HandleError(ctx *gin.Context, err error) {
 		return
 	}
 
-	// Never leak internals to clients in production; keep them while developing.
 	var detail error
 	if gin.Mode() != gin.ReleaseMode {
 		detail = err

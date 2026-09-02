@@ -1,6 +1,8 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"mime/multipart"
 	"path/filepath"
@@ -31,8 +33,24 @@ func (s *UploadService) UploadProductImage(productID uint, file *multipart.FileH
 		return "", fmt.Errorf("invalid file type: %s", ext)
 	}
 
-	path := fmt.Sprintf("products/%d/%s", productID, file.Filename)
+	name, err := uniqueFileName(ext)
+	if err != nil {
+		return "", err
+	}
+
+	path := fmt.Sprintf("products/%d/%s", productID, name)
 	return s.UploadFile(file, path)
+}
+
+// uniqueFileName keeps the caller's filename out of the storage key: it can
+// collide with an existing image, or carry "../" and separators that escape the
+// product folder on the local provider.
+func uniqueFileName(ext string) (string, error) {
+	buf := make([]byte, 16)
+	if _, err := rand.Read(buf); err != nil {
+		return "", fmt.Errorf("generate file name: %w", err)
+	}
+	return hex.EncodeToString(buf) + ext, nil
 }
 
 func isValidImageExtension(ext string) bool {
