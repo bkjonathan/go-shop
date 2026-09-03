@@ -1,3 +1,4 @@
-h1:64KeYPqYToOhozNvSfVAN+186e+fmnkzzBSHnelqtuc=
+h1:g0FdIQC3/BOpw3taY3LJfGpqhfEH67kzLdYGBGynQlg=
 20260831171939_init.up.sql h1:yPmqiToZlq687//DdMqgtXP+D33JCFPeiVUf1iHdqY4=
 20260901175809_add_sku.up.sql h1:8XbAGcE6Al865T63sEKU/6zfjFnpGiIidIKSuT0+h18=
+20260903030252_add_cart_item_relation.up.sql h1:opF4f8kyvlO8IYT+7S6hPWyfuza/kpydYUTOjNh7J+0=

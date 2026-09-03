@@ -43,6 +43,9 @@ type Cart struct {
 	BaseEntity
 
 	UserID uint `json:"user_id" gorm:"not null"`
+
+	// Relationships
+	CartItems []CartItem `json:"cart_items"`
 }
 
 type CartItem struct {

@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type AddToCartRequest struct {
 	ProductID uint `json:"product_id" binding:"required"`
 	Quantity  int  `json:"quantity" binding:"required,min=1"`
@@ -14,13 +16,17 @@ type CartResponse struct {
 	UserID    uint               `json:"user_id"`
 	CartItems []CartItemResponse `json:"cart_items"`
 	Total     float64            `json:"total"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
 }
 
 type CartItemResponse struct {
-	ID       uint            `json:"id"`
-	Product  ProductResponse `json:"product"`
-	Quantity int             `json:"quantity"`
-	SubTotal float64         `json:"subtotal"`
+	ID        uint            `json:"id"`
+	Product   ProductResponse `json:"product"`
+	Quantity  int             `json:"quantity"`
+	SubTotal  float64         `json:"subtotal"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 type OrderResponse struct {
