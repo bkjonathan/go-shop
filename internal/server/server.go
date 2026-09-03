@@ -21,6 +21,7 @@ type Server struct {
 	userService    *services.UserService
 	productService *services.ProductService
 	uploadService  *services.UploadService
+	cartService    *services.CartService
 }
 
 // TODO: Add a NewServer function to initialize the server with its dependencies
@@ -40,6 +41,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
 		userService:    services.NewUserService(db),
 		productService: services.NewProductService(db),
 		uploadService:  services.NewUploadService(uploadProvider),
+		cartService:    services.NewCartService(db),
 	}
 }
 
@@ -88,6 +90,15 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	products.PUT("/:id", s.adminMiddleware(), Handle(http.StatusOK, "Product updated successfully", s.updateProduct))
 	products.DELETE("/:id", s.adminMiddleware(), HandleEmptyNoContent(http.StatusOK, "Product deleted successfully", s.deleteProduct))
 	products.POST("/:id/images", s.adminMiddleware(), HandleEmpty(http.StatusCreated, "Product image uploaded successfully", s.uploadProductImage))
+
+	// Cart routes — always scoped to the authenticated user, never to an id in the path.
+	cart := api.Group("/cart")
+	cart.Use(s.authMiddleware())
+	cart.GET("", HandleEmpty(http.StatusOK, "Cart retrieved successfully", s.getCart))
+	cart.POST("/items", Handle(http.StatusCreated, "Item added to cart successfully", s.addToCart))
+	cart.PUT("/items/:id", Handle(http.StatusOK, "Cart item updated successfully", s.updateCartItem))
+	cart.DELETE("/items/:id", HandleEmpty(http.StatusOK, "Cart item removed successfully", s.removeCartItem))
+	cart.DELETE("", HandleEmptyNoContent(http.StatusOK, "Cart cleared successfully", s.clearCart))
 
 	return router
 }

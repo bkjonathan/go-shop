@@ -98,7 +98,7 @@ func (s *ProductService) GetProduct(id uint) (*dto.ProductResponse, error) {
 	if err := s.db.Preload("Category").Preload("Images").First(&product, id).Error; err != nil {
 		return nil, err
 	}
-	response := s.convertToProductResponse(&product)
+	response := toProductResponse(&product)
 	return &response, nil
 }
 
@@ -126,7 +126,7 @@ func (s *ProductService) ListProducts(page, limit int) ([]dto.ProductResponse, *
 
 	response := make([]dto.ProductResponse, len(products))
 	for i := range products {
-		response[i] = s.convertToProductResponse(&products[i])
+		response[i] = toProductResponse(&products[i])
 	}
 
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
@@ -192,7 +192,9 @@ func (s *ProductService) RemoveProductImage(imageID uint) error {
 	return nil
 }
 
-func (s *ProductService) convertToProductResponse(product *models.Product) dto.ProductResponse {
+// toProductResponse maps a product row onto the wire shape. Category and
+// Images are only filled when the caller preloaded them.
+func toProductResponse(product *models.Product) dto.ProductResponse {
 	images := make([]dto.ProductImageResponse, len(product.Images))
 	for i := range product.Images {
 		images[i] = dto.ProductImageResponse{
@@ -213,15 +215,10 @@ func (s *ProductService) convertToProductResponse(product *models.Product) dto.P
 		Stock:       product.Stock,
 		SKU:         product.SKU,
 		IsActive:    &product.IsActive,
-		Category: dto.CategoryResponse{
-			ID:          product.Category.ID,
-			Name:        product.Category.Name,
-			Description: product.Category.Description,
-			IsActive:    product.Category.IsActive,
-		},
-		Images:    images,
-		CreatedAt: product.CreatedAt,
-		UpdatedAt: product.UpdatedAt,
+		Category:    *toCategoryResponse(&product.Category),
+		Images:      images,
+		CreatedAt:   product.CreatedAt,
+		UpdatedAt:   product.UpdatedAt,
 	}
 }
 func toCategoryResponse(category *models.Category) *dto.CategoryResponse {
