@@ -42,6 +42,10 @@ type AWSConfig struct {
 	SecretAccessKey string
 	S3Bucket        string
 	S3Endpoint      string
+	// S3PublicEndpoint is the address browsers fetch objects from - the CDN
+	// container rather than the endpoint the SDK uploads through. Empty falls
+	// back to S3Endpoint.
+	S3PublicEndpoint string
 }
 
 type UploadConfig struct {
@@ -76,11 +80,12 @@ func Load() (*Config, error) {
 			RefreshTokenExpires: refreshTokenExpires,
 		},
 		AWS: AWSConfig{
-			Region:          getEnv("AWS_REGION", "us-east-1"),
-			AccessKeyId:     getEnv("AWS_ACCESS_KEY", "test"),
-			SecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", "test"),
-			S3Bucket:        getEnv("AWS_S3_BUCKET", "ecommerce-uploads"),
-			S3Endpoint:      getEnv("AWS_S3_ENDPOINT", "http://localhost:4566"),
+			Region:           getEnv("AWS_REGION", "us-east-1"),
+			AccessKeyId:      getEnv("AWS_ACCESS_KEY", "test"),
+			SecretAccessKey:  getEnv("AWS_SECRET_ACCESS_KEY", "test"),
+			S3Bucket:         getEnv("AWS_S3_BUCKET", "ecommerce-uploads"),
+			S3Endpoint:       getEnv("AWS_S3_ENDPOINT", "http://localhost:4566"),
+			S3PublicEndpoint: getEnv("AWS_S3_PUBLIC_ENDPOINT", ""),
 		},
 		Upload: UploadConfig{
 			Path:           getEnv("UPLOAD_PATH", "./uploads"),

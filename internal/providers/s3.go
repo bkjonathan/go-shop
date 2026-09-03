@@ -17,10 +17,11 @@ import (
 )
 
 type S3Provider struct {
-	client   *s3.Client
-	bucket   string
-	endpoint string
-	region   string
+	client         *s3.Client
+	bucket         string
+	endpoint       string
+	publicEndpoint string
+	region         string
 }
 
 func NewS3Provider(cfg *appconfig.Config) *S3Provider {
@@ -34,6 +35,14 @@ func NewS3Provider(cfg *appconfig.Config) *S3Provider {
 
 	endpoint := strings.TrimSuffix(cfg.AWS.S3Endpoint, "/")
 
+	// Objects are uploaded through the S3 endpoint but served to browsers by
+	// the CDN in front of it, so the two addresses differ. Without a CDN
+	// configured the endpoint doubles as the public address.
+	publicEndpoint := strings.TrimSuffix(cfg.AWS.S3PublicEndpoint, "/")
+	if publicEndpoint == "" {
+		publicEndpoint = endpoint
+	}
+
 	// Configure for localstack if endpoint is provided. LocalStack has no
 	// per-bucket DNS, so addressing has to be path style.
 	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
@@ -44,10 +53,11 @@ func NewS3Provider(cfg *appconfig.Config) *S3Provider {
 	})
 
 	return &S3Provider{
-		client:   client,
-		bucket:   cfg.AWS.S3Bucket,
-		endpoint: endpoint,
-		region:   cfg.AWS.Region,
+		client:         client,
+		bucket:         cfg.AWS.S3Bucket,
+		endpoint:       endpoint,
+		publicEndpoint: publicEndpoint,
+		region:         cfg.AWS.Region,
 	}
 }
 
@@ -106,10 +116,11 @@ func contentType(file *multipart.FileHeader, key string) string {
 }
 
 // publicURL builds the address an uploaded object is served from: path style
-// against a custom endpoint (LocalStack, MinIO), virtual host style on real AWS.
+// against a custom endpoint (the CDN, LocalStack, MinIO), virtual host style on
+// real AWS.
 func (p *S3Provider) publicURL(key string) string {
-	if p.endpoint != "" {
-		return fmt.Sprintf("%s/%s/%s", p.endpoint, p.bucket, key)
+	if p.publicEndpoint != "" {
+		return fmt.Sprintf("%s/%s/%s", p.publicEndpoint, p.bucket, key)
 	}
 	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", p.bucket, p.region, key)
 }
