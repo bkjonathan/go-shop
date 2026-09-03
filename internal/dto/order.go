@@ -1,10 +1,19 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/bkjonathan/go-shop/internal/utils"
+)
 
 type AddToCartRequest struct {
 	ProductID uint `json:"product_id" binding:"required"`
 	Quantity  int  `json:"quantity" binding:"required,min=1"`
+}
+
+type OrderListResponse struct {
+	Items []OrderResponse      `json:"items"`
+	Meta  utils.PaginationMeta `json:"meta"`
 }
 
 type UpdateCartItemRequest struct {
@@ -35,12 +44,15 @@ type OrderResponse struct {
 	Status      string              `json:"status"`
 	TotalAmount float64             `json:"total_amount"`
 	OrderItems  []OrderItemResponse `json:"order_items"`
-	CreatedAt   string              `json:"created_at"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
 }
 
 type OrderItemResponse struct {
-	ID       uint            `json:"id"`
-	Product  ProductResponse `json:"product"`
-	Quantity int             `json:"quantity"`
-	Price    float64         `json:"price"`
+	ID        uint            `json:"id"`
+	Product   ProductResponse `json:"product"`
+	Quantity  int             `json:"quantity"`
+	Price     float64         `json:"price"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }

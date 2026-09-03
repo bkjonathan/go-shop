@@ -22,6 +22,7 @@ type Server struct {
 	productService *services.ProductService
 	uploadService  *services.UploadService
 	cartService    *services.CartService
+	orderService   *services.OrderService
 }
 
 // TODO: Add a NewServer function to initialize the server with its dependencies
@@ -42,6 +43,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *zerolog.Logger) *Server {
 		productService: services.NewProductService(db),
 		uploadService:  services.NewUploadService(uploadProvider),
 		cartService:    services.NewCartService(db),
+		orderService:   services.NewOrderService(db),
 	}
 }
 
@@ -99,6 +101,13 @@ func (s *Server) SetupRoutes() *gin.Engine {
 	cart.PUT("/items/:id", Handle(http.StatusOK, "Cart item updated successfully", s.updateCartItem))
 	cart.DELETE("/items/:id", HandleEmpty(http.StatusOK, "Cart item removed successfully", s.removeCartItem))
 	cart.DELETE("", HandleEmptyNoContent(http.StatusOK, "Cart cleared successfully", s.clearCart))
+
+	// Order routes — like the cart, always scoped to the authenticated user.
+	orders := api.Group("/orders")
+	orders.Use(s.authMiddleware())
+	orders.POST("", HandleEmpty(http.StatusCreated, "Order created successfully", s.createOrder))
+	orders.GET("", HandleEmpty(http.StatusOK, "Orders retrieved successfully", s.getOrders))
+	orders.GET("/:id", HandleEmpty(http.StatusOK, "Order retrieved successfully", s.getOrder))
 
 	return router
 }
